@@ -27,7 +27,7 @@ OAuth. It is intentionally not auto-registered in local Codex installations.
 ## Install in Claude Code
 
 ```
-/plugin marketplace add treebird7/toak
+/plugin marketplace add treebird7/toak-plugin
 /plugin install toak@treebird
 ```
 
