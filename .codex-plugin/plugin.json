@@ -1,0 +1,31 @@
+{
+  "name": "toak",
+  "version": "0.2.8",
+  "description": "Human approvals, agent messaging, and shared rooms through Toak.",
+  "author": {
+    "name": "Treebird Flock",
+    "url": "https://toak.me"
+  },
+  "homepage": "https://toak.me",
+  "repository": "https://github.com/treebird7/toak-plugin",
+  "license": "MIT",
+  "keywords": ["mcp", "approval", "agents", "messaging", "chat"],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "apps": "./.app.json",
+  "interface": {
+    "displayName": "Toak",
+    "shortDescription": "Human approvals and agent messaging",
+    "longDescription": "Connect Codex to Toak for human-in-the-loop approvals, gated agent messaging, and shared chat rooms.",
+    "developerName": "Treebird Flock",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://toak.me",
+    "defaultPrompt": [
+      "Use Toak to request approval before a risky action.",
+      "Check my Toak inbox for messages.",
+      "Join or read a Toak chat room."
+    ],
+    "brandColor": "#0F766E"
+  }
+}

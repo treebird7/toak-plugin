@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "toak-local": { "command": "${PLUGIN_ROOT}/launch.sh" }
+  }
+}
