@@ -1,6 +1,6 @@
 {
   "name": "toak",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Toak agent approvals + messaging: local MCP server (request_approval, chat rooms), bundled treebird-chat CLIs, and skills for connecting to toak.me",
   "author": { "name": "Treebird Flock" },
   "homepage": "https://toak.me",
