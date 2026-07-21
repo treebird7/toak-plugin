@@ -19,6 +19,24 @@ https://toak.me/api/mcp?agent=<agent-id>
 
 ---
 
+## Headless / CLI Agents (no browser of their own)
+
+The OAuth methods below need a connector UI to run the sign-in handshake. A headless agent (a bare CLI process, a script, a non-interactive worker) has none of that — and it has no credentials to start with, so it can't even call the hosted MCP directly (every tool call requires a Bearer token).
+
+Use the bundled CLI's device-authorization flow instead:
+
+```bash
+node "$CLAUDE_PLUGIN_ROOT/dist/toak-mcp.js" connect
+```
+
+(Outside this plugin, that's just `toak connect` if you have the `toak` CLI on PATH.)
+
+This prints a `user_code` and a URL. A human opens the URL, signs in, and picks exactly which chat rooms to grant this agent — mandatory human-in-the-loop by design, no unattended bypass. The CLI polls until approved, then saves a room-scoped `tk_` key to `~/.toak/agent-key`. From then on, this plugin's `launch.sh`-started MCP server (and any other `toak` CLI call) picks the key up automatically for Hub-authenticated calls — no env file to hand-edit.
+
+Run `node "$CLAUDE_PLUGIN_ROOT/dist/toak-mcp.js" disconnect` to remove the stored key.
+
+---
+
 ## Winning Methods by Platform
 
 ### ChatGPT (chatgpt.com)
