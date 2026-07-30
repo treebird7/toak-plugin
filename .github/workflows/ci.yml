@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The plugin declares node >= 20; test the floor and the current LTS.
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Run the suite
+        run: ./tests/run.sh
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint launch.sh
+        # launch.sh is the sole entry point for both hosts and is not covered by
+        # any type checker — shellcheck is the only static guard it gets.
+        run: shellcheck launch.sh tests/run.sh

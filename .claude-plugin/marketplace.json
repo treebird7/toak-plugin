@@ -1,0 +1,11 @@
+{
+  "name": "treebird",
+  "owner": { "name": "Eyal Friedmann - Treebird", "url": "https://toak.me" },
+  "plugins": [
+    {
+      "name": "toak",
+      "source": "./",
+      "description": "Toak agent approvals + messaging: hosted Toak app for Codex, local MCP server for Claude Code, bundled treebird-chat CLIs, and skills"
+    }
+  ]
+}

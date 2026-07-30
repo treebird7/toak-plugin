@@ -1,0 +1,32 @@
+#!/bin/sh
+# Stub `node` placed at the front of PATH by launchWithStubNode(). It stands in
+# for the two things launch.sh shells out to, so the launcher's env-precedence
+# logic can be asserted without booting the real server.
+#
+#   node <...>/dist/toak-mcp.js serve  -> print the exec environment as JSON
+#   node <...>/fake-envoak.js vault …  -> act as a working vault
+case "$1" in
+  *toak-mcp.js)
+    shift
+    argv=""
+    for a in "$@"; do
+      [ -n "$argv" ] && argv="$argv,"
+      argv="$argv\"$a\""
+    done
+    # Single line — the harness parses the last line of stdout as JSON.
+    printf '{"argv":[%s],"env":{"TOAK_API_URL":"%s","HUB_URL":"%s","TOAK_AGENT_ID":"%s","TOAK_SUPABASE_URL":"%s","TOAK_SUPABASE_SERVICE_KEY":"%s"}}\n' \
+      "$argv" \
+      "${TOAK_API_URL-__UNSET__}" \
+      "${HUB_URL-__UNSET__}" \
+      "${TOAK_AGENT_ID-__UNSET__}" \
+      "${TOAK_SUPABASE_URL-__UNSET__}" \
+      "${TOAK_SUPABASE_SERVICE_KEY-__UNSET__}"
+    ;;
+  *fake-envoak.js)
+    echo "vault-injected-service-key"
+    ;;
+  *)
+    echo "stub node: unexpected invocation: $*" >&2
+    exit 1
+    ;;
+esac
