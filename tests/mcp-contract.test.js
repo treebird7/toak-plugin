@@ -46,6 +46,19 @@ describe('bundled CLIs respond', () => {
       assert.ok(stdout.includes(cli), `${cli} --help should name itself`);
     });
   }
+
+  test('dist/toak-mcp.js --version reports a build stamp', async () => {
+    const { code, stdout } = await run(process.execPath, [join('dist', 'toak-mcp.js'), '--version']);
+    assert.equal(code, 0);
+    // The stamp, not just semver, is the build identity (version-drift lesson, toak#240).
+    assert.match(stdout.trim(), /^\d+\.\d+\.\d+\+src\.sha256\.[0-9a-f]{64}$/m);
+  });
+
+  test('dist/toak-mcp.js connect --help exits 0 (device-flow pairing entry point)', async () => {
+    const { code, stdout } = await run(process.execPath, [join('dist', 'toak-mcp.js'), 'connect', '--help']);
+    assert.equal(code, 0);
+    assert.match(stdout, /device|pair/i, 'connect --help should describe device-flow pairing');
+  });
 });
 
 describe('MCP server contract', () => {
