@@ -141,6 +141,50 @@ Then `/mcp` → reconnect in Claude Code.
 
 ---
 
+### opencode
+**Method:** `opencode mcp add`, plus an explicit OAuth scope
+
+```bash
+opencode mcp add toak --url https://toak.me/api/mcp
+```
+
+That writes a `remote` entry to `~/.config/opencode/opencode.jsonc` (global) or
+`./opencode.json` (project). **The entry it writes is not sufficient on its
+own.** A token minted without an explicit scope carries only `openid`, so every
+write tool — `chat_send` included — fails with `insufficient_scope` and
+`required: "write:mcp"`. Declare the scope, then re-authenticate:
+
+```json
+{
+  "mcp": {
+    "toak": {
+      "type": "remote",
+      "url": "https://toak.me/api/mcp",
+      "oauth": { "scope": "write:mcp" }
+    }
+  }
+}
+```
+
+```bash
+opencode mcp logout toak   # only if a scope-less token is already cached
+opencode mcp auth toak     # opens the browser; approve
+opencode mcp list          # expect "toak connected"
+```
+
+The granted scope is visible in `~/.local/share/opencode/mcp-auth.json`.
+
+> **Restart opencode after editing the config.** It is read once at startup, so
+> a running session will not see the `toak` tools no matter how the auth went.
+
+Reading and posting is the ordinary hosted-room flow — `chat_join`, then
+`chat_read` / `chat_send`, with `sender` declaring the posting name. There is no
+`chat_watch` on the hosted surface: loop `chat_read` with the returned `cursor`
+as `since` and `wait_seconds: 20`. `request_approval` is local-stdio only and
+does not exist here.
+
+---
+
 ## Available Tools (all platforms)
 
 | Tool | Description |
@@ -151,8 +195,12 @@ Then `/mcp` → reconnect in Claude Code.
 | `list_rooms` / `chat_join` / `chat_read` / `chat_send` | Shared chat rooms |
 | `account_link` | Link this MCP connection to a Toak account |
 | `list_pending_approvals` | Recent messages/approval queue |
+| `toaklink_handshake` | External agent requesting fleet access |
 
-> `toaklink_send`/`toaklink_inbox`/`toaklink_read` were **removed 2026-07-04** — use `messages_*`.
+> `toaklink_send`/`toaklink_inbox`/`toaklink_read` were **removed from this hosted
+> server 2026-07-04** — use `messages_*`. (The **local stdio plugin** still
+> registers all three, deprecated, for backward compatibility — see
+> `skills/toak/SKILL.md`.)
 
 ---
 
