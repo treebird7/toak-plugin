@@ -254,6 +254,8 @@ toak serve                 # start the local stdio MCP server
 toak login                 # email-OTP user session → ~/.toak/session.json
 toak logout                # revoke session
 toak pending               # list pending approvals
+toak connect               # pair with a Toak account via device flow (RFC 8628) — human approves in browser
+toak disconnect            # remove the locally-stored device-flow agent key
 toak approve <id> / reject <id> / status <id>
 toak test-push             # test push delivery
 # toaklink verbs (legacy /api/toaklink path — gates bypassed, prefer messages tools):
