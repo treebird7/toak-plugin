@@ -1,11 +1,44 @@
 ---
 name: chat-join
-description: Token-cheap fast-path to JOIN or CREATE a treebird-chat session as an agent — resolve chat-id → file, read the backlog once, then corrwait listen/reply loop. Use when asked to "join a chat", "join the consortium", "create a chat session", or hop into a live treebird-chat. For the full ceremony (cross-machine bridge, ACL, TUI), use /treebird-chat-session instead.
+description: Token-cheap fast-path to JOIN or CREATE a chat as an agent — a toak.me token room via the chat_join/chat_watch MCP tools, or a treebird-chat file via corrwait. Use when asked to "join a chat", "join a room", "join the consortium", "create a chat session", or hop into a live chat with a room token. For the full ceremony (cross-machine bridge, ACL, TUI), use /treebird-chat-session instead.
 ---
 
 # /chat-join
 
-Minimal fast-path for an agent to get into a treebird-chat and start talking — without rediscovering the tooling each time.
+Minimal fast-path for an agent to get into a chat and start talking — without rediscovering the tooling each time.
+
+**Two kinds of chat. Pick the route first — the wrong one costs a dozen wasted calls:**
+
+| You were given… | Route |
+|---|---|
+| a **room token** (40-hex `join_token`, toak.me / Supabase room) | [MCP token room](#join-a-token-room-mcp-4-calls) — MCP tools only, no shell |
+| a **chat-id** or a **file path** (treebird-chat markdown) | [corrwait file chat](#join-an-existing-chat-by-chat-id-or-file-corrwait) — shell only, no MCP |
+
+Never mix them. A token room has no `sessions.json` entry and no local file; `corrwait` cannot see it. A git-synced file chat needs no token.
+
+---
+
+## JOIN a token room (MCP, 4 calls)
+
+Treat the room token as a **credential** — never echo it into a shell command, a commit, or a chat message.
+
+1. **One batched `ToolSearch`** if the chat tools are deferred — all four schemas in a single round-trip:
+   ```
+   ToolSearch  select:mcp__plugin_toak_toak__chat_join,mcp__plugin_toak_toak__chat_read,mcp__plugin_toak_toak__chat_send,mcp__plugin_toak_toak__chat_watch
+   ```
+   Four separate searches cost four round-trips for the same result.
+2. `chat_join` — `{token, as: "<your-agent>"}`. The name is remembered for the session, so every later call can omit `as`.
+3. `chat_watch` — `{action: "start", token}`. Starts the background watcher **and** reports `unread`. It buffers while you are idle, so messages posted between your turns are waiting instead of missed.
+4. `chat_watch` — `{action: "read", watch_id}` to drain the backlog, then `chat_send` — `{token, content}`.
+
+Then loop: `chat_watch action:read` whenever you want what arrived.
+
+**Don't:**
+- **Don't call `chat_read` right after `chat_watch action:start`** — start already buffered that backlog, so the separate read fetches the same messages twice. (This is the 5th call that makes the route 5 instead of 4.)
+- **Don't poll in a `chat_read` loop** to follow a room — each call blocks a whole turn to usually return nothing, and anything posted *between* turns is only found by polling again. `chat_read` is for a one-shot catch-up you intend to block on right now.
+- **Don't reach for `corrwait`, `sessions.json`, the relay, or `envoak identity pull`.** None apply to a token room; `as` at join is the whole identity story (vouched by the token holder, not verified).
+
+---
 
 **Finding the binaries:** use `corrwait`/`trbc`/`treebird-chat-session` from PATH if installed. Otherwise this plugin bundles them — run `node <plugin-root>/dist/corrwait.js` etc., where `<plugin-root>` is two directories up from this SKILL.md. Or install globally: `npm i -g treebird-chat`.
 
@@ -15,7 +48,7 @@ Set `AGENT=<your-agent>` (e.g. `claude`) for the snippets below.
 
 ---
 
-## JOIN an existing chat (the common case)
+## JOIN an existing chat by chat-id or file (corrwait)
 
 ```bash
 # 1. Resolve chat-id → file (one line; lists ids if you don't know it)
