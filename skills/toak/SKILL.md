@@ -32,12 +32,13 @@ ones so cached knowledge doesn't steer you wrong.
 | **Chat watcher** | Process-local token-room daemon (`chat_watch`) | **Local stdio only** |
 
 - **Local stdio server** — `toak serve`, source `src/server.ts`. Runs on your
-  machine via an MCP config entry. Registers **15 tools**: `health_check`,
+  machine via an MCP config entry. Registers **12 tools**: `health_check`,
   `request_approval`, `check_approval_status`, `list_pending_approvals`,
   `chat_join`, `chat_read`, `chat_send`, `chat_watch`, `messages_send`,
-  `messages_inbox`, `toaklink_collab`, `toaklink_agents`, plus the three
-  deprecated-but-still-registered `toaklink_send`, `toaklink_inbox`,
-  `toaklink_read` (see below). Counted from the shipped bundle, not from intent.
+  `messages_inbox`, `toaklink_collab`, `toaklink_agents` — plus a 13th,
+  `toaklink_invoak`, which is filtered out of the list unless a queue dir is
+  configured (`TOAKLINK_INVOAK_DIR`/`INVOAK_DIR`). Counted from the shipped
+  bundle, not from intent.
   Its chat tools bridge **both** Supabase rooms (`token`) **and** local
   treebird-chat/corrwait sessions (`chat_id`, from
   `~/.treebird-chat/sessions.json`).
@@ -55,18 +56,22 @@ ones so cached knowledge doesn't steer you wrong.
 
 ### Deprecated / removed — do not use
 
-- `toaklink_send` / `toaklink_inbox` / `toaklink_read` — **deprecated
-  2026-07-04** (tb-8en3). Use `messages_send` / `messages_inbox` instead. The
-  legacy `/api/toaklink/*` HTTP routes they call still answer but **bypass the
-  ADR-0003 delivery gates** (no rate buckets, no identity tiers, no audit), so
-  don't build on them.
-  > **Deprecated, not removed.** This document previously said "removed as MCP
-  > tools". They were not: the shipped `plugin/dist/toak-mcp.js` still registers
-  > all three, so MCP clients list and offer them. Verified against the 0.2.16
-  > bundle, not inferred from the changelog. What tb-8en3 actually shipped is a
-  > description-level deprecation. Saying "removed" about a tool that still
-  > appears in the client's tool list is worse than saying nothing — it tells a
-  > reader the gate-bypassing path is gone when it is one call away.
+- `toaklink_send` / `toaklink_inbox` / `toaklink_read` — **removed from both MCP
+  surfaces.** Deprecated 2026-07-04 and dropped from the remote route the same
+  day (tb-8en3); dropped from the local stdio plugin 2026-09-07 in 0.2.33. Use
+  `messages_send` / `messages_inbox`, which enforce the ADR-0003 delivery gates
+  (rate buckets, identity tiers, audit) that the legacy schema bypassed.
+  > **Removed this time, and checked the way the last claim should have been.**
+  > An earlier version of this document said "removed as MCP tools" on
+  > 2026-07-04 while the shipped bundle still registered all three — a reader was
+  > told the gate-bypassing path was gone when it was one call away. So: verified
+  > against the 0.2.33 bundle, `name:"toaklink_send"` and its two siblings are
+  > absent from `plugin/dist/toak-mcp.js`, and `tests/mcp-tools.test.ts` asserts
+  > both that they are not advertised and that the handler rejects them.
+  >
+  > The legacy `/api/toaklink/*` HTTP routes and the `toak` CLI that drives them
+  > are **untouched** and still answer — the CLI never routed through these MCP
+  > handlers. Removing the tools closed the MCP entry point, not the transport.
 - `request_approval` / `check_approval_status` — exist **only** on the local
   stdio server, never on the remote `/api/mcp`.
 - `toaklink_invoak` — **opt-in, not always available.** Writes an invoak task

@@ -198,9 +198,9 @@ does not exist here.
 | `toaklink_handshake` | External agent requesting fleet access |
 
 > `toaklink_send`/`toaklink_inbox`/`toaklink_read` were **removed from this hosted
-> server 2026-07-04** — use `messages_*`. (The **local stdio plugin** still
-> registers all three, deprecated, for backward compatibility — see
-> `skills/toak/SKILL.md`.)
+> server 2026-07-04** and from the **local stdio plugin** on 2026-09-07 (0.2.33).
+> Neither surface registers them any more — use `messages_send`/`messages_inbox`.
+> See `skills/toak/SKILL.md`.
 
 ---
 
