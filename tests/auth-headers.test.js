@@ -1,8 +1,16 @@
 // End-to-end guard for the toak#179 credential leak.
 //
-// Drives the real bundled server against a local stub standing in for the
-// Supabase project, with a canary `tk_` value in TOAK_API_KEY and a canary
-// agent-key file on disk. Both are the reusable Toak-domain credentials that
+// Drives the real bundle against a local stub standing in for the Supabase
+// project, with a canary `tk_` value in TOAK_API_KEY and a canary agent-key
+// file on disk.
+//
+// The vehicle is the bundled CLI's `toak say`, not an MCP tool call. It used
+// to be the `toaklink_send` tool, which 0.2.32 unregistered (tk-toy9) — but
+// the leak path is not gone, only the MCP entry to it. Both entries always
+// funnelled into the same SupabaseToaklinkClient.send(), the single call site
+// carrying `useAgentKey: false`, and `toak say` still reaches it. That path is
+// the only /functions/v1/ request the whole bundle makes. Retiring this suite
+// with the tool would have left it unguarded. Both are the reusable Toak-domain credentials that
 // f227c59/d07b1c2 stopped attaching to non-Toak hosts. If either shows up in a
 // request to the Supabase stub, the leak is back.
 import { test, describe, before, after } from 'node:test';
@@ -25,7 +33,8 @@ const AGENT_KEY_CANARY = `tk_${'AGENTFILECANARY00000000000000000'}`;
 // credentials — which would make this test pass no matter what the gate does.
 // A non-JWT anon key leaves the agent-key/TOAK_API_KEY branch live, so the
 // assertions below can actually fail. Verified by mutation: flipping the
-// toaklink/send call site to useAgentKey:true makes these tests red.
+// toaklink/send call site to useAgentKey:true makes these tests red. That is
+// the same call site the CLI reaches, so the mutation still bites.
 const ANON_KEY = 'sb-anon-not-a-jwt';
 
 let stub;
@@ -59,12 +68,12 @@ before(async () => {
 
 after(() => stub?.close());
 
-/** Call one tool on a freshly spawned server wired to the stub, and return the requests it made. */
-function callTool(name, args, { timeoutMs = 20000 } = {}) {
-  // toaklink_* requests are signed; supply an inline key so the call gets past
-  // signing and actually reaches the network layer we are inspecting.
+/** Run one bundled-CLI command wired to the stub, and let it drive the requests we inspect. */
+function runCli(args, { timeoutMs = 20000 } = {}) {
+  // toaklink/send requests are signed; supply an inline key so the call gets
+  // past signing and actually reaches the network layer we are inspecting.
   const { privateKey } = generateKeyPairSync('ed25519');
-  const child = spawn(process.execPath, [join(REPO_ROOT, 'dist', 'toak-mcp.js'), 'serve'], {
+  const child = spawn(process.execPath, [join(REPO_ROOT, 'dist', 'toak-mcp.js'), ...args], {
     cwd: REPO_ROOT,
     env: {
       ...process.env,
@@ -80,44 +89,17 @@ function callTool(name, args, { timeoutMs = 20000 } = {}) {
   });
 
   return new Promise((resolve, reject) => {
-    let buffer = '';
+    let stdout = '';
     let stderr = '';
     const timer = setTimeout(() => {
       child.kill('SIGKILL');
-      reject(new Error(`tool call ${name} timed out\nstderr: ${stderr}`));
+      reject(new Error(`toak ${args.join(' ')} timed out\nstdout: ${stdout}\nstderr: ${stderr}`));
     }, timeoutMs);
+    child.stdout.on('data', (c) => { stdout += c; });
     child.stderr.on('data', (c) => { stderr += c; });
-    child.stdout.on('data', (chunk) => {
-      buffer += chunk;
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        let msg;
-        try { msg = JSON.parse(line); } catch { continue; }
-        if (msg.id === 2) {
-          clearTimeout(timer);
-          child.kill('SIGKILL');
-          resolve({ response: msg, stderr });
-          return;
-        }
-      }
-    });
     child.on('error', (err) => { clearTimeout(timer); reject(err); });
-
-    const send = (obj) => child.stdin.write(`${JSON.stringify(obj)}\n`);
-    send({
-      jsonrpc: '2.0',
-      id: 1,
-      method: 'initialize',
-      params: {
-        protocolVersion: '2024-11-05',
-        capabilities: {},
-        clientInfo: { name: 'toak-plugin-tests', version: '1' },
-      },
-    });
-    send({ jsonrpc: '2.0', method: 'notifications/initialized' });
-    send({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name, arguments: args } });
+    child.on('close', (code) => { clearTimeout(timer); resolve({ code, stdout, stderr }); });
+    child.stdin.end();
   });
 }
 
@@ -126,10 +108,11 @@ describe('no Toak-domain credential reaches the Supabase domain (toak#179)', () 
 
   before(async () => {
     requests.length = 0;
-    const { response, stderr } = await callTool('toaklink_send', { to: 'someone', message: 'hi' });
-    assert.ok(
-      !response.error,
-      `toaklink_send failed, so the leak path was never exercised: ${JSON.stringify(response.error)}\n${stderr}`,
+    const { code, stdout, stderr } = await runCli(['say', 'someone', 'hi']);
+    assert.equal(
+      code,
+      0,
+      `toak say exited ${code}, so the leak path was never exercised:\n${stdout}\n${stderr}`,
     );
     sent = requests.filter((r) => r.url.includes('/functions/v1/'));
     assert.ok(sent.length > 0, 'no Supabase /functions request was made — the guard tested nothing');

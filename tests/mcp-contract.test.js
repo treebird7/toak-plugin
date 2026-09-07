@@ -13,7 +13,7 @@ import {
   readText,
   DOCUMENTED_TOOLS,
   APPROVAL_AND_CHAT_TOOLS,
-  DEPRECATED_TOAKLINK_TOOLS,
+  REMOVED_TOAKLINK_TOOLS,
   LIVE_TOAKLINK_TOOLS,
   REPO_ROOT,
 } from './helpers.js';
@@ -130,6 +130,22 @@ describe('docs match the shipped tool set', () => {
     );
   });
 
+  test('README states the right tool count', () => {
+    // The test above only asserts each DOCUMENTED tool is NAMED somewhere in
+    // the README — a one-directional check that goes quiet exactly when the
+    // set shrinks. It stayed green through 0.2.32 while the README still
+    // advertised the three unregistered toaklink_* tools and claimed 15.
+    // Pin the count too, the same way SKILL.md's is pinned.
+    const readme = readText('README.md');
+    const match = /registering (\d+) tools/.exec(readme);
+    assert.ok(match, 'README.md should state how many tools the local server registers');
+    assert.equal(
+      Number(match[1]),
+      DOCUMENTED_TOOLS.length,
+      'the README\'s tool count drifted from what the bundle registers',
+    );
+  });
+
   test('skills/toak/SKILL.md does not describe locally-registered tools as remote-only', () => {
     const skill = readText('skills/toak/SKILL.md');
     // The architecture table used to file messages_send/messages_inbox under
@@ -143,38 +159,26 @@ describe('docs match the shipped tool set', () => {
   });
 });
 
-describe('deprecated tools are still shipped (unresolved upstream)', () => {
-  // Not an aspiration — a pin on current reality. skills/toak/SKILL.md says
-  // these were "removed as MCP tools 2026-07-04", yet the bundle registers them
-  // and MCP clients offer them. If a future rebundle actually unregisters them,
-  // this test fails and the skill's note can finally be simplified.
-  test('the deprecated toaklink_* tools are still registered by the bundle', async () => {
+describe('the legacy toaklink_* tools stay unregistered', () => {
+  // The inverse of the pin this suite carried through 0.2.31. Those tools were
+  // offered to MCP clients with only a DEPRECATED prefix steering agents off
+  // the gate-bypassing path; tk-toy9 unregistered them in 0.2.32. This asserts
+  // they do not come back — a re-add would restore the exposure silently,
+  // since nothing else in the suite would notice a tool appearing.
+  //
+  // The companion test that checked their DEPRECATED warning text was deleted
+  // rather than left to iterate an emptied list: with the tools gone it has no
+  // property left to check, and a green no-op still counts as coverage to
+  // whoever reads the output next.
+  test('the removed toaklink_* tools are not registered by the bundle', async () => {
     const { toolsList } = await mcpHandshake();
     const names = toolsList.result.tools.map((t) => t.name);
-    const stillThere = DEPRECATED_TOAKLINK_TOOLS.filter((t) => names.includes(t));
+    const back = REMOVED_TOAKLINK_TOOLS.filter((t) => names.includes(t));
     assert.deepEqual(
-      stillThere.sort(),
-      [...DEPRECATED_TOAKLINK_TOOLS].sort(),
-      'the deprecated toaklink_* tool set changed — reconcile skills/toak/SKILL.md with the bundle',
+      back,
+      [],
+      'a toaklink_* tool removed in 0.2.32 is registered again — it bypasses the ADR-0003 delivery gates',
     );
-  });
-
-  test('each carries its DEPRECATED warning in the description', async () => {
-    // This is the safety property that actually matters. The tools are exposed
-    // to clients, so the only thing steering an agent away from the
-    // gate-bypassing path is the warning in the description an MCP client
-    // renders. If a rebundle registers them without it, the path goes from
-    // "advertised with a warning" to "advertised silently".
-    const { toolsList } = await mcpHandshake();
-    for (const name of DEPRECATED_TOAKLINK_TOOLS) {
-      const tool = toolsList.result.tools.find((t) => t.name === name);
-      assert.match(tool.description, /^DEPRECATED\b/, `${name} lost its DEPRECATED prefix`);
-      assert.match(
-        tool.description,
-        /bypasses ADR-0003 delivery gates/,
-        `${name} no longer warns that it bypasses the delivery gates`,
-      );
-    }
   });
 
   test('the live toaklink_* tools are not mislabelled as deprecated', async () => {

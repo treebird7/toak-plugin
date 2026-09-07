@@ -34,14 +34,23 @@ export const APPROVAL_AND_CHAT_TOOLS = [
 export const MESSAGES_TOOLS = ['messages_send', 'messages_inbox'];
 
 /**
- * skills/toak/SKILL.md marks these "removed as MCP tools 2026-07-04 (tb-8en3)".
- * They are not removed — the bundle registers them and MCP clients offer them.
- * Upstream deprecated them in the tool *description* instead ("DEPRECATED —
- * legacy toaklink schema, bypasses ADR-0003 delivery gates"), which is what an
- * agent picking from the tool list actually reads. Pinned, together with the
- * warning text, until upstream either unregisters them or retracts the notice.
+ * Unregistered upstream by tk-toy9 (treebird7/toak#364), shipped here from
+ * 0.2.33 on. From 0.2.26 (this repo's first commit) through 0.2.31 they were
+ * deprecated in the tool *description* only ("DEPRECATED — legacy toaklink
+ * schema, bypasses ADR-0003 delivery gates") while still being offered to MCP
+ * clients, so this suite pinned both their presence and that warning text. The presence pin is now
+ * inverted: the names stay listed so a re-add is caught, and the warning-text
+ * test is gone because there is no longer an exposed tool to warn about.
+ *
+ * Deliberately still a NON-EMPTY array. Emptying it would have left the
+ * warning-text loop iterating nothing — passing while asserting nothing, which
+ * reads as coverage in the output and is worse than a deleted test.
+ *
+ * The routes themselves are not gone, only the MCP entry to them: the bundled
+ * CLI's `toak say` still posts to /functions/v1/toak-api/api/toaklink/send,
+ * which is what tests/auth-headers.test.js now drives.
  */
-export const DEPRECATED_TOAKLINK_TOOLS = [
+export const REMOVED_TOAKLINK_TOOLS = [
   'toaklink_send',
   'toaklink_inbox',
   'toaklink_read',
@@ -59,7 +68,6 @@ export const LIVE_TOAKLINK_TOOLS = ['toaklink_collab', 'toaklink_agents'];
 export const DOCUMENTED_TOOLS = [
   ...APPROVAL_AND_CHAT_TOOLS,
   ...MESSAGES_TOOLS,
-  ...DEPRECATED_TOAKLINK_TOOLS,
   ...LIVE_TOAKLINK_TOOLS,
 ];
 
