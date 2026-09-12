@@ -263,17 +263,21 @@ toak connect               # pair with a Toak account via device flow (RFC 8628)
 toak disconnect            # remove the locally-stored device-flow agent key
 toak approve <id> / reject <id> / status <id>
 toak test-push             # test push delivery
-# toaklink verbs (legacy /api/toaklink path — gates bypassed, prefer messages tools):
-toak say <target> <msg>    # send  (verb is `say`, not `send`)
-toak inbox                 # inbox
-toak read <target>         # conversation history
-toak agents                # address book
-toak listen / toak chat <agent>   # background watchers (legacy path)
+toak agents                # address book (local, no network)
+toak collab <msg>          # append to the active collaboration file
+toak invoak <task>         # create an invoak task
 ```
 
-> The `say`/`inbox`/`read`/`listen`/`chat`/`invoak` CLI verbs still hit the
-> legacy `/api/toaklink/*` routes, which **bypass the delivery gates**. Prefer
-> the `messages_*` MCP tools for anything that should be gated.
+> `toak inbox` / `read` / `listen` / `chat` / `link` were **removed 2026-09-12**
+> (tk-4bqy, finishing tb-8en3). They hit the legacy `/api/toaklink/*` routes over
+> `toaklink_messages`, whose last write was 2026-03-17 — so they answered
+> successfully and delivered nothing, the same defect the matching MCP tools were
+> removed for in 0.2.33. Use the `messages_*` MCP tools, which enforce the
+> ADR-0003 delivery gates.
+>
+> `toak say` is still registered and still bypasses those gates. It is kept for
+> one reason: it is the only `/functions/v1/` request the bundle makes, and the
+> public suite's toak#179 credential-leak guard drives it. Not a delivery path.
 
 ## Troubleshooting
 
