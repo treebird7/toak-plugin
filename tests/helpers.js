@@ -71,10 +71,18 @@ export const REMOVED_TOAKLINK_TOOLS = [
  */
 export const LIVE_TOAKLINK_TOOLS = ['toaklink_agents'];
 
+/**
+ * Collaborative markdown docs attached to a room (treebird7/toak#406, 0.2.41).
+ * doc_read returns content + version; doc_write saves version+1, so a lost
+ * update surfaces as a conflict. Access follows the room allowlist.
+ */
+export const DOC_TOOLS = ['doc_read', 'doc_write'];
+
 export const DOCUMENTED_TOOLS = [
   ...APPROVAL_AND_CHAT_TOOLS,
   ...MESSAGES_TOOLS,
   ...LIVE_TOAKLINK_TOOLS,
+  ...DOC_TOOLS,
 ];
 
 export function readJSON(relPath) {
