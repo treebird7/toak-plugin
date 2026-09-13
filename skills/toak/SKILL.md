@@ -32,20 +32,19 @@ ones so cached knowledge doesn't steer you wrong.
 | **Chat watcher** | Process-local token-room daemon (`chat_watch`) | **Local stdio only** |
 
 - **Local stdio server** — `toak serve`, source `src/server.ts`. Runs on your
-  machine via an MCP config entry. Registers **12 tools**: `health_check`,
+  machine via an MCP config entry. Registers **11 tools**: `health_check`,
   `request_approval`, `check_approval_status`, `list_pending_approvals`,
   `chat_join`, `chat_read`, `chat_send`, `chat_watch`, `messages_send`,
-  `messages_inbox`, `toaklink_collab`, `toaklink_agents` — plus a 13th,
-  `toaklink_invoak`, which is filtered out of the list unless a queue dir is
-  configured (`TOAKLINK_INVOAK_DIR`/`INVOAK_DIR`). Counted from the shipped
-  bundle, not from intent.
+  `messages_inbox`, `toaklink_agents`. Counted from the shipped bundle, not
+  from intent.
   Its chat tools bridge **both** Supabase rooms (`token`) **and** local
   treebird-chat/corrwait sessions (`chat_id`, from
   `~/.treebird-chat/sessions.json`).
-  - `toaklink_collab` (append to the active collaboration file's session log) and
-    `toaklink_agents` (list live rooms + connected principals) are **current
-    tools** — they share only the `toaklink_` prefix with the deprecated set
-    below, and neither touches the legacy messaging routes.
+  - `toaklink_agents` (list live rooms + connected principals) is a **current
+    tool** and shares only the `toaklink_` prefix with the deprecated set below.
+    It is not toaklink code at all — it reads `ChatClient` and lives in
+    `src/agent-directory-tool.ts`. The name is kept because renaming a published
+    MCP tool breaks callers.
 - **Remote MCP** — `https://toak.me/api/mcp` (the URL the `/connect` page hands
   agents). This is the surface for hosted clients — Perplexity, ChatGPT,
   Claude.ai. Stateless Streamable-HTTP, POST-only. Registers **10 tools**:
@@ -74,17 +73,10 @@ ones so cached knowledge doesn't steer you wrong.
   > handlers. Removing the tools closed the MCP entry point, not the transport.
 - `request_approval` / `check_approval_status` — exist **only** on the local
   stdio server, never on the remote `/api/mcp`.
-- `toaklink_invoak` — **opt-in, not always available.** Writes an invoak task
-  file to `TOAKLINK_INVOAK_DIR` (falling back to `INVOAK_DIR`, then
-  `~/.invoak`) or opens a GitHub issue for `github:owner/repo` targets, on the
-  local stdio server only. Controlled by `TOAK_ENABLE_INVOAK`: `true`/`false`
-  forces it on/off; unset, it auto-enables only when `TOAKLINK_INVOAK_DIR` (or
-  `INVOAK_DIR`) is actually configured. When disabled it's dropped from the
-  tool list entirely (not just documented as unavailable), and a direct call
-  fails closed with an error rather than writing anywhere. `ui-dashboard`/
-  `ui-monitor` follow the same check. Briefly removed 2026-07-05, since
-  restored — check `src/toaklink/mcp-tools.ts` for current behavior rather
-  than trusting this note if it looks stale again.
+- `toaklink_collab` / `toaklink_invoak` — **removed 2026-09-13.** Only the MCP
+  entry points are gone; the writers behind them stay, because `src/invoak/api.ts`
+  uses the collab writer and `ui-dashboard`/`ui-monitor` use `isInvoakEnabled()`.
+  The `toak invoak` CLI command is unchanged.
 
 ## Tool reference
 
