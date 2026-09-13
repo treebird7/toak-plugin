@@ -177,13 +177,12 @@ describe('the legacy toaklink_* tools stay unregistered', () => {
     assert.deepEqual(
       back,
       [],
-      'a toaklink_* tool removed in 0.2.32 is registered again — it bypasses the ADR-0003 delivery gates',
+      'a removed toaklink_* tool is registered again — send/inbox/read (0.2.32) bypass the ADR-0003 delivery gates; collab/invoak (0.2.37) were removed from the MCP surface on purpose',
     );
   });
 
   test('the live toaklink_* tools are not mislabelled as deprecated', async () => {
-    // toaklink_collab and toaklink_agents share only the prefix — they are
-    // current functionality. Grouping them with the deprecated set by name is
+    // toaklink_agents shares only the prefix — it is current functionality. Grouping them with the deprecated set by name is
     // an easy mistake to make (this suite made it once).
     const { toolsList } = await mcpHandshake();
     for (const name of LIVE_TOAKLINK_TOOLS) {
