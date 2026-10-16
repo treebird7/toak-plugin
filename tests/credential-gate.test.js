@@ -35,24 +35,17 @@ describe('agent-key credential gate (toak#179)', () => {
     );
   });
 
-  test('at least one call site opts out', () => {
-    const optOuts = bundle.match(/useAgentKey:\s*(?:!1|false)/g) ?? [];
-    assert.ok(
-      optOuts.length >= 1,
-      'no call site passes useAgentKey:false — the Supabase-domain leak from toak#179 is back',
-    );
-  });
-
-  test('the Supabase toaklink/send call still opts out', () => {
-    // The specific leak f227c59 closed: a reusable Toak-domain tk_ key being
-    // attached to a raw Supabase /functions call.
-    const idx = bundle.indexOf('toaklink/send');
-    assert.notEqual(idx, -1, 'the toaklink/send call site vanished — re-audit the auth headers');
-    const region = bundle.slice(idx, idx + 400);
-    assert.match(
-      region,
-      /useAgentKey:\s*(?:!1|false)/,
-      'toaklink/send no longer suppresses the agent key — this is the toak#179 leak',
+  // The leak toak#179 closed rode SupabaseToaklinkClient.send(), the one call
+  // site that sent Toak auth headers to a Supabase /functions/v1/ path (via
+  // `toak say`). 0.2.44 deleted that client with the rest of toaklink, so the
+  // end-to-end suite that drove it (auth-headers.test.js) had no vehicle left.
+  // What still stands: the gate above and below, for any future caller, and
+  // this check that the retired path has not come back.
+  test('the retired toak-api send path stays gone', () => {
+    assert.doesNotMatch(
+      bundle,
+      /toak-api\/api\/toaklink|toaklink\/send/,
+      'a toaklink send path is back in the bundle — re-audit it against toak#179 and restore an end-to-end guard',
     );
   });
 

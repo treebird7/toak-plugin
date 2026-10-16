@@ -60,16 +60,11 @@ export const REMOVED_TOAKLINK_TOOLS = [
   // here so a re-add is caught the same way.
   'toaklink_collab',
   'toaklink_invoak',
+  // 0.2.44 (treebird7/toak 60cfafa): toaklink retired. toaklink_agents threw on
+  // every call once service_role lost SELECT on toak_chat_rooms; the remote
+  // MCP's list_rooms replaces it.
+  'toaklink_agents',
 ];
-
-/**
- * The live tool that merely shares the `toaklink_` prefix — not deprecated, and
- * it does not touch the legacy messaging routes. `toaklink_agents` lists live
- * rooms and connected principals. Grouping it with the removed set by prefix
- * alone is a mistake worth guarding against. (`toaklink_collab` was here until
- * 0.2.37 removed it — see REMOVED_TOAKLINK_TOOLS.)
- */
-export const LIVE_TOAKLINK_TOOLS = ['toaklink_agents'];
 
 /**
  * Collaborative markdown docs attached to a room (treebird7/toak#406, 0.2.41).
@@ -81,7 +76,6 @@ export const DOC_TOOLS = ['doc_read', 'doc_write'];
 export const DOCUMENTED_TOOLS = [
   ...APPROVAL_AND_CHAT_TOOLS,
   ...MESSAGES_TOOLS,
-  ...LIVE_TOAKLINK_TOOLS,
   ...DOC_TOOLS,
 ];
 
