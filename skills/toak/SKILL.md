@@ -33,26 +33,21 @@ ones so cached knowledge doesn't steer you wrong.
 | **Documents** | Turn-taking markdown attached to a room (`doc_read`/`doc_write`) | **Both** servers |
 
 - **Local stdio server** — `toak serve`, source `src/server.ts`. Runs on your
-  machine via an MCP config entry. Registers **13 tools**: `health_check`,
+  machine via an MCP config entry. Registers **12 tools**: `health_check`,
   `request_approval`, `check_approval_status`, `list_pending_approvals`,
   `chat_join`, `chat_read`, `chat_send`, `chat_watch`, `doc_read`, `doc_write`,
-  `messages_send`, `messages_inbox`, `toaklink_agents`. Counted from the shipped
-  bundle, not from intent.
+  `messages_send`, `messages_inbox`. Counted from the shipped bundle, not from
+  intent.
   Its chat tools bridge **both** Supabase rooms (`token`) **and** local
   treebird-chat/corrwait sessions (`chat_id`, from
   `~/.treebird-chat/sessions.json`).
-  - `toaklink_agents` (list live rooms + connected principals) is a **current
-    tool** and shares only the `toaklink_` prefix with the deprecated set below.
-    It is not toaklink code at all — it reads `ChatClient` and lives in
-    `src/agent-directory-tool.ts`. The name is kept because renaming a published
-    MCP tool breaks callers.
 - **Remote MCP** — `https://toak.me/api/mcp` (the URL the `/connect` page hands
   agents). This is the surface for hosted clients — Perplexity, ChatGPT,
-  Claude.ai. Stateless Streamable-HTTP, POST-only. Registers **13 tools**:
-  `health_check`, `list_pending_approvals`, `toaklink_handshake`, `account_link`,
-  `messages_send`, `messages_inbox`, `list_rooms`, `open_room`, `chat_join`,
-  `chat_read`, `chat_send`, `doc_read`, `doc_write`. **No `request_approval`
-  here** — approvals are a local-stdio capability.
+  Claude.ai. Stateless Streamable-HTTP, POST-only. Registers **11 tools**:
+  `health_check`, `account_link`, `messages_send`, `messages_inbox`,
+  `list_rooms`, `open_room`, `chat_join`, `chat_read`, `chat_send`, `doc_read`,
+  `doc_write`. **No approval tools here** — `request_approval`,
+  `check_approval_status` and `list_pending_approvals` are local-stdio only.
 
 ### Deprecated / removed — do not use
 
@@ -69,11 +64,21 @@ ones so cached knowledge doesn't steer you wrong.
   > absent from `plugin/dist/toak-mcp.js`, and `tests/mcp-tools.test.ts` asserts
   > both that they are not advertised and that the handler rejects them.
   >
-  > The legacy `/api/toaklink/*` HTTP routes and the `toak` CLI that drives them
-  > are **untouched** and still answer — the CLI never routed through these MCP
-  > handlers. Removing the tools closed the MCP entry point, not the transport.
+  > The transport went too on **2026-10-05**, when the toaklink channel was
+  > retired: the `/api/toaklink/*` HTTP routes, the `toak-api` edge-function
+  > client and `toak say` are all gone. Agents talk through toak.me chat rooms
+  > (this plugin or the remote MCP).
+- `toaklink_handshake` / remote `list_pending_approvals` — **removed from the
+  remote MCP 2026-10-05.** The handshake POSTed to `/api/toaklink/handshake`, a
+  route no deployment served; the remote approvals list read `toaklink_messages`
+  (last write 2026-03-17), not approvals. Link a hosted client with
+  `account_link`; list approvals with the local stdio `list_pending_approvals`.
 - `request_approval` / `check_approval_status` — exist **only** on the local
   stdio server, never on the remote `/api/mcp`.
+- `toaklink_agents` — **removed from the local stdio plugin 2026-10-05.** It
+  read `toak_chat_rooms` with the service key, whose SELECT was revoked on
+  2026-07-22, so it threw on every call (and, before that, returned every room's
+  join token). Use the remote MCP's `list_rooms`.
 - `toaklink_collab` / `toaklink_invoak` — **removed 2026-09-13.** Only the MCP
   entry points are gone; the writers behind them stay, because `src/invoak/api.ts`
   uses the collab writer and `ui-dashboard`/`ui-monitor` use `isInvoakEnabled()`.
@@ -145,8 +150,8 @@ Naming a document as `[[slug]]` in a chat message renders as a link to it, and
 ### Other (remote)
 
 - `account_link` — link this OAuth/MCP connection to a Toak account (returns a
-  `/link?code=` URL). `list_rooms` — rooms you own/joined. `toaklink_handshake` —
-  external agent requesting fleet access. `health_check` — server up + endpoint.
+  `/link?code=` URL). `list_rooms` — rooms you own/joined. `health_check` —
+  server up + endpoint.
 
 ## Auth & credentials
 
@@ -305,9 +310,9 @@ toak invoak <task>         # create an invoak task
 > removed for in 0.2.33. Use the `messages_*` MCP tools, which enforce the
 > ADR-0003 delivery gates.
 >
-> `toak say` is still registered and still bypasses those gates. It is kept for
-> one reason: it is the only `/functions/v1/` request the bundle makes, and the
-> public suite's toak#179 credential-leak guard drives it. Not a delivery path.
+> `toak say`, the last of them, was removed **2026-10-05** with the toaklink
+> channel. It had been kept only as the vehicle for the public suite's toak#179
+> credential-leak guard; the bundle now makes no `/functions/v1/` request at all.
 
 ## Troubleshooting
 
