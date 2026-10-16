@@ -73,7 +73,7 @@ if [ -z "${TOAK_SUPABASE_SERVICE_KEY:-}" ]; then
     # server still starts — Supabase-backed tools going dark is a degradation,
     # not a reason to deny the caller approvals and hub tools too.
     echo "toak plugin: could not read ${TOAK_VAULT_PROJECT}/${TOAK_VAULT_SECRET} from the vault." >&2
-    echo "toak plugin: starting WITHOUT a Supabase key — chat_send and toaklink_* will be unavailable." >&2
+    echo "toak plugin: starting WITHOUT a Supabase key — chat_send will be unavailable." >&2
     echo "toak plugin: set TOAK_SUPABASE_SERVICE_KEY directly, or point TOAK_VAULT_PROJECT/TOAK_VAULT_SECRET at the right coordinate." >&2
   fi
 fi

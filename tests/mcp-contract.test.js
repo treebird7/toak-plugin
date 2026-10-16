@@ -14,7 +14,6 @@ import {
   DOCUMENTED_TOOLS,
   APPROVAL_AND_CHAT_TOOLS,
   REMOVED_TOAKLINK_TOOLS,
-  LIVE_TOAKLINK_TOOLS,
   REPO_ROOT,
 } from './helpers.js';
 
@@ -179,21 +178,6 @@ describe('the legacy toaklink_* tools stay unregistered', () => {
       [],
       'a removed toaklink_* tool is registered again — send/inbox/read (0.2.32) bypass the ADR-0003 delivery gates; collab/invoak (0.2.37) were removed from the MCP surface on purpose',
     );
-  });
-
-  test('the live toaklink_* tools are not mislabelled as deprecated', async () => {
-    // toaklink_agents shares only the prefix — it is current functionality. Grouping them with the deprecated set by name is
-    // an easy mistake to make (this suite made it once).
-    const { toolsList } = await mcpHandshake();
-    for (const name of LIVE_TOAKLINK_TOOLS) {
-      const tool = toolsList.result.tools.find((t) => t.name === name);
-      assert.ok(tool, `${name} is no longer registered`);
-      assert.doesNotMatch(
-        tool.description,
-        /DEPRECATED/,
-        `${name} is now deprecated upstream — regroup it in helpers.js and update the skill`,
-      );
-    }
   });
 
   test('the approvals + chat group is complete', async () => {

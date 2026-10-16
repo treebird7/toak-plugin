@@ -193,13 +193,14 @@ does not exist here.
 | `messages_inbox` | List messages directed at you |
 | `messages_send` | Send a gated message to a user/agent |
 | `list_rooms` / `chat_join` / `chat_read` / `chat_send` | Shared chat rooms |
+| `open_room` | Validate + read a room in one call |
+| `doc_read` / `doc_write` | Room documents |
 | `account_link` | Link this MCP connection to a Toak account |
-| `list_pending_approvals` | Recent messages/approval queue |
-| `toaklink_handshake` | External agent requesting fleet access |
 
 > `toaklink_send`/`toaklink_inbox`/`toaklink_read` were **removed from this hosted
 > server 2026-07-04** and from the **local stdio plugin** on 2026-09-07 (0.2.33).
-> Neither surface registers them any more — use `messages_send`/`messages_inbox`.
+> `toaklink_handshake` and the hosted `list_pending_approvals` followed on
+> 2026-10-05, when the toaklink channel was retired — link with `account_link`.
 > See `skills/toak/SKILL.md`.
 
 ---

@@ -1,11 +1,10 @@
 // Structural canaries over the committed bundle.
 //
-// These are static checks; the end-to-end proof that no Toak-domain credential
-// reaches the Supabase domain lives in auth-headers.test.js, which drives the
-// real server. Both are worth keeping: the behavioural test covers the one
-// call site reachable from a registered tool, while these canaries cover the
-// hardening on paths this repo cannot drive (device-flow key writes) and fail
-// loudly if a rebundle drops them. That is exactly how the toak#179 leak got
+// These are static checks. Until 0.2.44 an end-to-end test (auth-headers.test.js)
+// also drove the one call site that sent Toak headers to the Supabase domain;
+// that call site was deleted with toaklink, so only these canaries remain. They
+// cover the hardening on paths this repo cannot drive (device-flow key writes)
+// and fail loudly if a rebundle drops them. That is exactly how the toak#179 leak got
 // in — dist/toak-mcp.js was committed here with no source in the diff and no
 // check that could see it.
 import { test, describe } from 'node:test';
@@ -35,24 +34,17 @@ describe('agent-key credential gate (toak#179)', () => {
     );
   });
 
-  test('at least one call site opts out', () => {
-    const optOuts = bundle.match(/useAgentKey:\s*(?:!1|false)/g) ?? [];
-    assert.ok(
-      optOuts.length >= 1,
-      'no call site passes useAgentKey:false — the Supabase-domain leak from toak#179 is back',
-    );
-  });
-
-  test('the Supabase toaklink/send call still opts out', () => {
-    // The specific leak f227c59 closed: a reusable Toak-domain tk_ key being
-    // attached to a raw Supabase /functions call.
-    const idx = bundle.indexOf('toaklink/send');
-    assert.notEqual(idx, -1, 'the toaklink/send call site vanished — re-audit the auth headers');
-    const region = bundle.slice(idx, idx + 400);
-    assert.match(
-      region,
-      /useAgentKey:\s*(?:!1|false)/,
-      'toaklink/send no longer suppresses the agent key — this is the toak#179 leak',
+  // The leak toak#179 closed rode SupabaseToaklinkClient.send(), the one call
+  // site that sent Toak auth headers to a Supabase /functions/v1/ path (via
+  // `toak say`). 0.2.44 deleted that client with the rest of toaklink, so the
+  // end-to-end suite that drove it (auth-headers.test.js) had no vehicle left.
+  // What still stands: the gate above and below, for any future caller, and
+  // this check that the retired path has not come back.
+  test('the retired toak-api send path stays gone', () => {
+    assert.doesNotMatch(
+      bundle,
+      /toak-api\/api\/toaklink|toaklink\/send/,
+      'a toaklink send path is back in the bundle — re-audit it against toak#179 and restore an end-to-end guard',
     );
   });
 
