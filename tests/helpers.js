@@ -46,9 +46,7 @@ export const MESSAGES_TOOLS = ['messages_send', 'messages_inbox'];
  * warning-text loop iterating nothing — passing while asserting nothing, which
  * reads as coverage in the output and is worse than a deleted test.
  *
- * The routes themselves are not gone, only the MCP entry to them: the bundled
- * CLI's `toak say` still posts to /functions/v1/toak-api/api/toaklink/send,
- * which is what tests/auth-headers.test.js now drives.
+ * 0.2.44 then removed the routes and `toak say` too (toaklink retired).
  */
 export const REMOVED_TOAKLINK_TOOLS = [
   'toaklink_send',

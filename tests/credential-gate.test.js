@@ -1,11 +1,10 @@
 // Structural canaries over the committed bundle.
 //
-// These are static checks; the end-to-end proof that no Toak-domain credential
-// reaches the Supabase domain lives in auth-headers.test.js, which drives the
-// real server. Both are worth keeping: the behavioural test covers the one
-// call site reachable from a registered tool, while these canaries cover the
-// hardening on paths this repo cannot drive (device-flow key writes) and fail
-// loudly if a rebundle drops them. That is exactly how the toak#179 leak got
+// These are static checks. Until 0.2.44 an end-to-end test (auth-headers.test.js)
+// also drove the one call site that sent Toak headers to the Supabase domain;
+// that call site was deleted with toaklink, so only these canaries remain. They
+// cover the hardening on paths this repo cannot drive (device-flow key writes)
+// and fail loudly if a rebundle drops them. That is exactly how the toak#179 leak got
 // in — dist/toak-mcp.js was committed here with no source in the diff and no
 // check that could see it.
 import { test, describe } from 'node:test';
