@@ -1,0 +1,8 @@
+[
+  {
+    "name": "chat-watch-wake",
+    "description": "Toak token-room messages (chat_watch)",
+    "command": "[ -n \"$CLAUDE_CODE_SESSION_ID\" ] || exit 0; d=\"${TOAK_WAKE_DIR:-$HOME/.toak/wake}\"; f=\"$d/$CLAUDE_CODE_SESSION_ID.log\"; umask 077; mkdir -p \"$d\" && touch \"$f\" && exec tail -n0 -F \"$f\"",
+    "when": "always"
+  }
+]
