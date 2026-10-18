@@ -144,8 +144,11 @@ need a device-flow `tk_` key, a signed-in session, or an account-linked OAuth
 connection. This is the one place where "I can read the room" does not imply "I
 can read its docs".
 
-Naming a document as `[[slug]]` in a chat message renders as a link to it, and
-`[[other-room/slug]]` crosses rooms.
+Naming a document as `[[slug]]` in a chat message renders as a link to it.
+`[[other-room/slug]]` crosses rooms, and `[[project/room/slug]]` names a room
+inside a project. Room names can repeat across projects, so a two-part link to a
+repeated name opens nothing (it is refused, not guessed): add the project.
+Four or more parts stay plain text.
 
 ### Other (remote)
 
