@@ -52,7 +52,9 @@ describe('agent-key credential gate (toak#179)', () => {
     // The 0.2.12 fix only suppressed the ~/.toak/agent-key FILE; 0.2.13 also
     // had to gate the ambient TOAK_API_KEY env var. Both must stay behind the
     // same flag.
-    const gate = /\w+=\w+\.useAgentKey!==!1,\w+=\w+\?\w+\("TOAK_API_KEY"\):void 0/;
+    // [\w$]: minifiers use `$` as an identifier (0.2.51's bundle names the
+    // options param `$`), which \w alone does not match.
+    const gate = /[\w$]+=[\w$]+\.useAgentKey!==!1,[\w$]+=[\w$]+\?[\w$]+\("TOAK_API_KEY"\):void 0/;
     assert.match(
       bundle,
       gate,

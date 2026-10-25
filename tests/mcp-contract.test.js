@@ -151,9 +151,12 @@ describe('docs match the shipped tool set', () => {
     // "Remote /api/mcp" only, while the local server registers them too.
     const row = skill.split('\n').find((l) => l.includes('**Messages protocol**'));
     assert.ok(row, 'the architecture table lost its Messages protocol row');
+    // Since toak#478 the protocol is frozen on both servers (410 on stdio, not
+    // listed on toak.me), and the row says so. Either way it must not file the
+    // tools under the remote server alone.
     assert.ok(
-      /Both/.test(row),
-      'messages_send/messages_inbox are registered by the local server too — the table must say Both',
+      /Both|Frozen/.test(row),
+      'messages_send/messages_inbox are registered by the local server too — the table must say Both (or Frozen)',
     );
   });
 });
