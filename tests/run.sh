@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-MIN_MAJOR=20
+MIN_MAJOR=22
 major="$(node -p 'process.versions.node.split(".")[0]')"
 if [ "$major" -lt "$MIN_MAJOR" ]; then
   echo "toak-plugin tests need node >= $MIN_MAJOR (found $(node --version))" >&2
