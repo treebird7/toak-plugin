@@ -1,5 +1,5 @@
 #!/bin/bash
-# Zero-dependency test entry point. Node 22's built-in runner, no package.json,
+# Zero-dependency test entry point. Node's built-in runner, no package.json,
 # no install step — the same command CI runs.
 set -euo pipefail
 cd "$(dirname "$0")/.."
