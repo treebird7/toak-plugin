@@ -54,7 +54,7 @@ Nothing is embedded. Configure via env (all optional; approvals/chat degrade gra
 - `TOAK_SUPABASE_URL` / `TOAK_SUPABASE_ANON_KEY` — user login + chat rooms
 - `PUSHOVER_APP_TOKEN` / `PUSHOVER_USER_KEY`, `TELEGRAM_BOT_TOKEN` — push notifications
 
-Requires `node` (>=20) on PATH.
+Requires `node` (>=22) on PATH.
 
 > `TOAK_API_URL` is the **hub**, not the Supabase project URL. Leave it unset
 > unless you are genuinely pointing at a different hub — `launch.sh` deliberately
@@ -90,7 +90,7 @@ Zero dependencies — Node's built-in runner, nothing to install. The suite cove
 what this repo actually owns: `launch.sh` env/identity precedence, the two plugin
 manifests staying in sync, the MCP tool contract the docs promise, and a
 regression guard proving no Toak-domain credential reaches the Supabase domain
-(toak#179). CI runs it on node 20, 22 and 24, plus shellcheck on `launch.sh`.
+(toak#179). CI runs it on node 22 and 24, plus shellcheck on `launch.sh`.
 
 Unit tests for server behaviour belong upstream in `treebird7/toak`, where the
 source lives — `dist/` here is a build artifact.

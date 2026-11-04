@@ -12,9 +12,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The plugin declares node >= 20 (README); test that floor, 22, and the
-        # active LTS. Drop 20 only together with raising the declared floor.
-        node: ['20', '22', '24']
+        # The plugin declares node >= 22 (README; tests/run.sh MIN_MAJOR): test that
+        # floor and the active LTS. Raise the floor in all three places together.
+        node: ['22', '24']
     steps:
       - uses: actions/checkout@v4
 
